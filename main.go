@@ -10,7 +10,9 @@ func main() {
 
 	a := micrograd.NewValue(2.0)
 	b := micrograd.NewValue(-3.0)
-	c := a.Add(b)
+	c := micrograd.NewValue(10.0)
+	d := a.Mul(b).Add(c)
 
-	fmt.Printf("%s", c.String())
+	fmt.Printf("%s", d.String())
+	d.Previous()
 }
