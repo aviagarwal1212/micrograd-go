@@ -11,44 +11,65 @@ type Value struct {
 	label    string
 	previous []Value
 	op       string
+	backward func()
 }
 
 func NewValue(x float64, label string) *Value {
-	return &Value{Data: x, grad: 0.0, label: label, previous: []Value{}, op: ""}
+	return &Value{Data: x, grad: 0.0, label: label, previous: []Value{}, op: "", backward: func() {}}
 }
 
-func (value Value) String() string {
-	return fmt.Sprintf("Value '%s'( Data: %.3f )\n", value.label, value.Data)
+func (self *Value) String() string {
+	return fmt.Sprintf("Value '%s'( Data: %.3f )\n", self.label, self.Data)
 }
 
-func (value Value) Describe() {
-	printout := value.String()
-	printout += fmt.Sprintf("Grad: %.3f\n", value.grad)
+func (self *Value) Describe() {
+	printout := "\n" + self.String()
+	printout += fmt.Sprintf("Grad: %.3f\n", self.grad)
 	printout += "Previous:\n"
-	for _, child := range value.previous {
+	for _, child := range self.previous {
 		printout += child.String()
 	}
-	printout += fmt.Sprintf("Op: %s\n", value.op)
+	printout += fmt.Sprintf("Op: %s\n", self.op)
 	fmt.Printf("%s", printout)
 }
 
-func (value Value) Add(other *Value, label string) *Value {
-	out := value.Data + other.Data
-	return &Value{Data: out, label: label, previous: []Value{value, *other}, op: "+"}
+func (self *Value) Add(other *Value, label string) *Value {
+	out := &Value{Data: (self.Data + other.Data), label: label, previous: []Value{*self, *other}, op: "+"}
+	out.backward = func() {
+		self.grad = 1.0 * out.grad
+		other.grad = 1.0 * out.grad
+	}
+	return out
 }
 
-func (value Value) Mul(other *Value, label string) *Value {
-	out := value.Data * other.Data
-	return &Value{Data: out, label: label, previous: []Value{value, *other}, op: "*"}
+func (self *Value) Mul(other *Value, label string) *Value {
+	out := &Value{Data: (self.Data * other.Data), label: label, previous: []Value{*self, *other}, op: "*"}
+	out.backward = func() {
+		self.grad = out.grad * other.Data
+		other.grad = out.grad * self.Data
+	}
+	return out
 }
 
-func (value Value) Tanh(label string) *Value {
-	n := value.Data
+func (self *Value) Tanh(label string) *Value {
+	n := self.Data
 	t := (math.Exp(2*n) - 1) / (math.Exp(2*n) + 1)
-	return &Value{
+	out := &Value{
 		Data:     t,
 		label:    label,
-		previous: []Value{value},
+		previous: []Value{*self},
 		op:       "tanh",
 	}
+	out.backward = func() {
+		self.grad = (1 - math.Pow(t, 2.0)) * out.grad
+	}
+	return out
+}
+
+func (self *Value) SetGradient(grad float64) {
+	self.grad = grad
+}
+
+func (self *Value) BackwardPass() {
+	self.backward()
 }
