@@ -6,7 +6,8 @@ import (
 )
 
 type Value struct {
-	Data     float64
+	Data float64
+
 	grad     float64
 	label    string
 	previous []Value
