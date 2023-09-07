@@ -8,17 +8,6 @@ import (
 func main() {
 	fmt.Println("Welcome to micrograd!")
 
-	// a := micrograd.NewValue(2.0, "a")
-	// b := micrograd.NewValue(-3.0, "b")
-	// c := micrograd.NewValue(10.0, "c")
-	// e := a.Mul(b, "e")
-	// d := e.Add(c, "d")
-	// f := micrograd.NewValue(-2.0, "f")
-	// L := d.Mul(f, "L")
-
-	// L.Describe()
-	// f.Describe()
-
 	// inputs x1 and x2
 	x1 := micrograd.NewValue(2.0, "x1")
 	x2 := micrograd.NewValue(0.0, "x2")
@@ -41,30 +30,38 @@ func main() {
 	o.SetGradient(1.0)
 	o.Describe()
 
-	// implement the backward pass for o and check n
+	// execute the backward pass for o and check n
 	o.BackwardPass()
 	n.Describe()
 
-	// implement the backward pass for n and check x1w1x2w2 and b
+	// execute the backward pass for n and check x1w1x2w2 and b
 	n.BackwardPass()
 	x1w1x2w2.Describe()
 	b.Describe()
 
-	// implement backward pass for b
+	// execute backward pass for b
 	b.BackwardPass()
 
-	// implement backward pass for x1w1x2w2 and check x1w1 and x2w2
+	// execute backward pass for x1w1x2w2 and check x1w1 and x2w2
 	x1w1x2w2.BackwardPass()
 	x1w1.Describe()
 	x2w2.Describe()
 
-	// implement backward pass for x1w1 and check x1 and w1
+	// execute backward pass for x1w1 and check x1 and w1
 	x1w1.BackwardPass()
 	x1.Describe()
 	w1.Describe()
 
-	// implement backward pass for x2w2 and check x2 and w2
+	// execute backward pass for x2w2 and check x2 and w2
 	x2w2.BackwardPass()
 	x2.Describe()
 	w2.Describe()
+
+	fmt.Println()
+
+	// build a topological sorted graph
+	graph := micrograd.NewExecutionGraph(o)
+	fmt.Println()
+	graph.Display()
+
 }
